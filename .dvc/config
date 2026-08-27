@@ -1,4 +1,4 @@
 [core]
     remote = local_remote
 ['remote "local_remote"']
-    url = /home/jetro/dvc-storage
+    url = ssh://jetro@100.100.73.112/home/jetro/dvc-storage
