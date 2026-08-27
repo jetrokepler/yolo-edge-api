@@ -1,3 +1,4 @@
+
 # Pipeline completo: lint → testes → build ARM64 → quality gate → deploy
 
 name: Edge AI — Build, Test e Deploy
@@ -46,8 +47,19 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.RPI_SSH_KEY }}" | tr -d '\r' > ~/.ssh/dvc_key
           chmod 600 ~/.ssh/dvc_key
+          
+          # Desativa a checagem rigorosa de host para o DVC não travar esperando confirmação
           dvc remote modify --local local_remote keyfile ~/.ssh/dvc_key
-          dvc pull
+          dvc remote modify --local local_remote ask_password false
+
+
+          # Força parâmetros SSH seguros contra timeout
+          eval $(ssh-agent)
+          ssh-add ~/.ssh/dvc_key
+          ssh-keyscan -H ${{ secrets.RPI_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+          
+          # Tenta puxar o modelo
+          dvc pull -v
 
       - name: Disponibiliza o modelo em /app/models (mesmo path usado no Docker)
         run: |
@@ -144,7 +156,14 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.RPI_SSH_KEY }}" | tr -d '\r' > ~/.ssh/dvc_key
           chmod 600 ~/.ssh/dvc_key
+          
           dvc remote modify --local local_remote keyfile ~/.ssh/dvc_key
+          dvc remote modify --local local_remote ask_password false
+          
+          eval $(ssh-agent)
+          ssh-add ~/.ssh/dvc_key
+          ssh-keyscan -H ${{ secrets.RPI_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+          
           dvc pull models/yolov8n.pt
 
       - name: Executar quality gate (mAP@0.5 >= 0.50)
