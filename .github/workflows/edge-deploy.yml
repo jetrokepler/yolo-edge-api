@@ -52,6 +52,8 @@ jobs:
             StrictHostKeyChecking no
             UserKnownHostsFile /dev/null
             IdentityFile ~/.ssh/dvc_key
+            ConnectTimeout 15
+            ServerAliveInterval 5
           EOF
           chmod 600 ~/.ssh/config
 
