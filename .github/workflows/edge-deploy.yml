@@ -53,9 +53,10 @@ jobs:
           dvc remote modify --local local_remote user "${{ secrets.RPI_USER }}"
           dvc remote modify --local local_remote keyfile ~/.ssh/dvc_key
           dvc remote modify --local local_remote ask_password false
-          dvc remote modify --local local_remote hostkey_verify false01~
-          # Tenta puxar o modelo
-          dvc pull -v
+          dvc remote modify --local local_remote hostkey_verify false01
+
+          dvc pull -v --ssh-config-dict "{'StrictHostKeyChecking': 'no', 'UserKnownHostsFile': '/dev/null'}"
+
 
       - name: Disponibiliza o modelo em /app/models (mesmo path usado no Docker)
         run: |
@@ -156,9 +157,9 @@ jobs:
           dvc remote modify --local local_remote user "${{ secrets.RPI_USER }}"
           dvc remote modify --local local_remote keyfile ~/.ssh/dvc_key
           dvc remote modify --local local_remote ask_password false
-          dvc remote modify --local local_remote hostkey_verify false
           
-          dvc pull models/yolov8n.pt -v
+          dvc pull models/yolov8n.pt -v --ssh-config-dict "{'StrictHostKeyChecking': 'no', 'UserKnownHostsFile': '/dev/null'}"
+
 
       - name: Executar quality gate (mAP@0.5 >= 0.50)
         run: python scripts/eval_model.py --threshold 0.50
