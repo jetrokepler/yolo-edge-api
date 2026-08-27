@@ -50,12 +50,19 @@ jobs:
           
           # Desativa a checagem rigorosa de host para o DVC não travar esperando confirmação
 
+          cat << 'EOF' > ~/.ssh/config
+          Host *
+            StrictHostKeyChecking no
+            UserKnownHostsFile /dev/null
+            IdentityFile ~/.ssh/dvc_key
+          EOF
+          chmod 600 ~/.ssh/config
+
           dvc remote modify --local local_remote user "${{ secrets.RPI_USER }}"
           dvc remote modify --local local_remote keyfile ~/.ssh/dvc_key
           dvc remote modify --local local_remote ask_password false
 
-          dvc pull -v --ssh-config-dict "{'StrictHostKeyChecking': 'no', 'UserKnownHostsFile': '/dev/null'}"
-
+          dvc pull -v
 
       - name: Disponibiliza o modelo em /app/models (mesmo path usado no Docker)
         run: |
@@ -153,17 +160,30 @@ jobs:
           echo "${{ secrets.RPI_SSH_KEY }}" | tr -d '\r' > ~/.ssh/dvc_key
           chmod 600 ~/.ssh/dvc_key
           
+          cat << 'EOF' > ~/.ssh/config
+          Host *
+            StrictHostKeyChecking no
+            UserKnownHostsFile /dev/null
+            IdentityFile ~/.ssh/dvc_key
+          EOF
+          chmod 600 ~/.ssh/config
+
           dvc remote modify --local local_remote user "${{ secrets.RPI_USER }}"
           dvc remote modify --local local_remote keyfile ~/.ssh/dvc_key
           dvc remote modify --local local_remote ask_password false
           
-          dvc pull models/yolov8n.pt -v --ssh-config-dict "{'StrictHostKeyChecking': 'no', 'UserKnownHostsFile': '/dev/null'}"
-
+          dvc pull models/yolov8n.pt -v
 
       - name: Executar quality gate (mAP@0.5 >= 0.50)
         run: python scripts/validate_model.py --threshold 0.50
 
-  # ─────────────────────────────────────────────────────────
+  # ───�cat << 'EOF' > ~/.ssh/config
+          Host *
+            StrictHostKeyChecking no
+            UserKnownHostsFile /dev/null
+            IdentityFile ~/.ssh/dvc_key
+          EOF
+          chmod 600 ~/.ssh/config��─────────────────────────────────────────────────────
   # JOB 4: Deploy no Raspberry Pi 5 via SSH
   # Executa apenas em push para main (não em PRs)
   # ─────────────────────────────────────────────────────────
