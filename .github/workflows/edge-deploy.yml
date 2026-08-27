@@ -53,7 +53,6 @@ jobs:
           dvc remote modify --local local_remote user "${{ secrets.RPI_USER }}"
           dvc remote modify --local local_remote keyfile ~/.ssh/dvc_key
           dvc remote modify --local local_remote ask_password false
-          dvc remote modify --local local_remote hostkey_verify false01
 
           dvc pull -v --ssh-config-dict "{'StrictHostKeyChecking': 'no', 'UserKnownHostsFile': '/dev/null'}"
 
@@ -162,7 +161,7 @@ jobs:
 
 
       - name: Executar quality gate (mAP@0.5 >= 0.50)
-        run: python scripts/eval_model.py --threshold 0.50
+        run: python scripts/validate_model.py --threshold 0.50
 
   # ─────────────────────────────────────────────────────────
   # JOB 4: Deploy no Raspberry Pi 5 via SSH
