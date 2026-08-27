@@ -1,4 +1,3 @@
-
 # Pipeline completo: lint → testes → build ARM64 → quality gate → deploy
 
 name: Edge AI — Build, Test e Deploy
@@ -14,10 +13,10 @@ env:
   IMAGE_NAME: ${{ github.repository }}/yolo-api
 
 jobs:
-  # ─────────────────────────────────────────────────────────
+  # ---------------------------------------------------------
   # JOB 1: Lint e testes unitários / smoke / integration
   # Runner: ubuntu-latest (x86_64, gratuito no GitHub)
-  # ─────────────────────────────────────────────────────────
+  # ---------------------------------------------------------
   test:
     name: "Lint & Tests"
     runs-on: ubuntu-latest
@@ -47,8 +46,6 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.RPI_SSH_KEY }}" | tr -d '\r' > ~/.ssh/dvc_key
           chmod 600 ~/.ssh/dvc_key
-          
-          # Desativa a checagem rigorosa de host para o DVC não travar esperando confirmação
 
           cat << 'EOF' > ~/.ssh/config
           Host *
@@ -61,7 +58,6 @@ jobs:
           dvc remote modify --local local_remote user "${{ secrets.RPI_USER }}"
           dvc remote modify --local local_remote keyfile ~/.ssh/dvc_key
           dvc remote modify --local local_remote ask_password false
-
           dvc pull -v
 
       - name: Disponibiliza o modelo em /app/models (mesmo path usado no Docker)
@@ -76,10 +72,10 @@ jobs:
       - name: Testes automatizados
         run: pytest tests/ -v --tb=short
 
-  # ─────────────────────────────────────────────────────────
+  # ---------------------------------------------------------
   # JOB 2: Build da imagem Docker multi-arquitetura
   # Plataforma: linux/arm64 (rpicam-apps-lite não existe para amd64)
-  # ─────────────────────────────────────────────────────────
+  # ---------------------------------------------------------
   build:
     name: "Build & Push (ARM64)"
     needs: test
@@ -128,10 +124,10 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # ─────────────────────────────────────────────────────────
+  # ---------------------------------------------------------
   # JOB 3: Quality gate do modelo
   # Valida mAP@0.5 antes de autorizar o deploy
-  # ─────────────────────────────────────────────────────────
+  # ---------------------------------------------------------
   model-gate:
     name: "Model Quality Gate"
     needs: build
@@ -176,16 +172,10 @@ jobs:
       - name: Executar quality gate (mAP@0.5 >= 0.50)
         run: python scripts/validate_model.py --threshold 0.50
 
-  # ───�cat << 'EOF' > ~/.ssh/config
-          Host *
-            StrictHostKeyChecking no
-            UserKnownHostsFile /dev/null
-            IdentityFile ~/.ssh/dvc_key
-          EOF
-          chmod 600 ~/.ssh/config��─────────────────────────────────────────────────────
+  # ---------------------------------------------------------
   # JOB 4: Deploy no Raspberry Pi 5 via SSH
   # Executa apenas em push para main (não em PRs)
-  # ─────────────────────────────────────────────────────────
+  # ---------------------------------------------------------
   deploy:
     name: "Deploy → Raspberry Pi 5"
     needs: model-gate
